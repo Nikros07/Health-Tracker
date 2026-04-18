@@ -117,7 +117,7 @@ function buildSubcatGrid() {
       <span class="subcat-name">${sub.icon || ''} ${sub.name}</span>
       <span class="subcat-units">${sub.defaultUnits} ${_selectedCat.unit}</span>
     `;
-    item.addEventListener('click', () => selectSub(sub));
+    item.addEventListener('click', () => selectSub(sub, item));
     grid.appendChild(item);
   });
   return grid;
@@ -211,10 +211,10 @@ function selectCategory(cat) {
   refreshUnitInfo();
 }
 
-function selectSub(sub) {
+function selectSub(sub, element) {
   _selectedSub = sub;
   document.querySelectorAll('.subcat-item').forEach(el => el.classList.remove('selected'));
-  event.currentTarget.classList.add('selected');
+  element.classList.add('selected');
   refreshUnitInfo();
 }
 

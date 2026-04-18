@@ -99,7 +99,7 @@ export function getMonthlyTotal(categoryId) {
 export function getWeeklyTotal(categoryId) {
   const startOfWeek = dayjs().subtract(6, 'day').format('YYYY-MM-DD');
   return getEntries()
-    .filter(e => e.categoryId === categoryId && e.timestamp.slice(0, 10) >= startOfWeek)
+    .filter(e => e.categoryId === categoryId && dateKey(e.timestamp) >= startOfWeek)
     .reduce((sum, e) => sum + (e.totalUnits || e.amount), 0);
 }
 
