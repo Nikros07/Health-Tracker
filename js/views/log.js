@@ -126,13 +126,19 @@ function buildSubcatGrid() {
 function buildUnitInfo() {
   if (!_selectedSub) return document.createDocumentFragment();
   const totalUnits = (_selectedSub.defaultUnits * _quantity).toFixed(2);
+  const frag = document.createDocumentFragment();
+
   const div = document.createElement('div');
   div.className = 'unit-info';
   div.innerHTML = `
-    <span>Gesamt Units</span>
+    <div>
+      <div>Reiner Alkohol</div>
+      <div style="font-size:11px;color:var(--text-muted);">1 Unit = 10ml purer Alkohol</div>
+    </div>
     <span class="unit-info-value">${totalUnits} ${_selectedCat.unit}</span>
   `;
-  return div;
+  frag.appendChild(div);
+  return frag;
 }
 
 function buildQuantityInput() {

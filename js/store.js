@@ -13,18 +13,29 @@ const DEFAULT_CATEGORIES = [
     dailyLimit: 14,
     archived: false,
     subcategories: [
-      { id: 'sub-beer-05', name: 'Bier 0,5L', defaultUnits: 2.5, icon: '🍺' },
-      { id: 'sub-beer-033', name: 'Bier 0,33L', defaultUnits: 1.65, icon: '🍺' },
-      { id: 'sub-wine-lg', name: 'Wein (groß, 0,2L)', defaultUnits: 2.4, icon: '🍷' },
-      { id: 'sub-wine-sm', name: 'Wein (klein, 0,1L)', defaultUnits: 1.2, icon: '🍷' },
-      { id: 'sub-shot', name: 'Shot (4cl, 40%)', defaultUnits: 1.6, icon: '🥃' },
-      { id: 'sub-shot-dbl', name: 'Doppelter Shot (6cl)', defaultUnits: 2.4, icon: '🥃' },
-      { id: 'sub-cocktail', name: 'Cocktail', defaultUnits: 2.0, icon: '🍹' },
-      { id: 'sub-sekt', name: 'Sekt/Prosecco (0,1L)', defaultUnits: 1.1, icon: '🥂' },
-      { id: 'sub-vodka', name: 'Vodka (4cl, 40%)', defaultUnits: 1.6, icon: '🫙' },
-      { id: 'sub-gin', name: 'Gin (4cl, 40%)', defaultUnits: 1.6, icon: '🫙' },
-      { id: 'sub-rum', name: 'Rum (4cl, 40%)', defaultUnits: 1.6, icon: '🫙' },
-      { id: 'sub-alcopop', name: 'Alcopop (0,33L)', defaultUnits: 1.5, icon: '🥤' },
+      // Bier — 5% ABV: ml × 0,05 / 10 = Units
+      { id: 'sub-beer-mass', name: '🍺 Maß Bier (1L, 5%)', defaultUnits: 5.0, icon: '🍺' },
+      { id: 'sub-beer-05', name: '🍺 Bier Flasche/Pint (0,5L, 5%)', defaultUnits: 2.5, icon: '🍺' },
+      { id: 'sub-beer-033', name: '🍺 Kleines Bier (0,33L, 5%)', defaultUnits: 1.65, icon: '🍺' },
+      // Vodka — 40% ABV: 40cl Glas = 16 Units, deutlich mehr als Bier!
+      { id: 'sub-vodka-shot', name: '🥃 Vodka Shot (2cl, 40%)', defaultUnits: 0.8, icon: '🥃' },
+      { id: 'sub-vodka-norm', name: '🥃 Vodka Glas (4cl, 40%)', defaultUnits: 1.6, icon: '🥃' },
+      { id: 'sub-vodka-dbl', name: '🥃 Vodka doppelt (8cl, 40%)', defaultUnits: 3.2, icon: '🥃' },
+      { id: 'sub-vodka-lg', name: '🥃 Vodka Party-Glas (15cl, 40%)', defaultUnits: 6.0, icon: '🥃' },
+      // Gin, Rum, Whisky — 40%
+      { id: 'sub-gin-norm', name: '🫙 Gin (4cl, 40%)', defaultUnits: 1.6, icon: '🫙' },
+      { id: 'sub-gin-lg', name: '🫙 Gin doppelt (8cl, 40%)', defaultUnits: 3.2, icon: '🫙' },
+      { id: 'sub-rum-norm', name: '🫙 Rum (4cl, 40%)', defaultUnits: 1.6, icon: '🫙' },
+      { id: 'sub-rum-lg', name: '🫙 Rum doppelt (8cl, 40%)', defaultUnits: 3.2, icon: '🫙' },
+      { id: 'sub-whisky-norm', name: '🥃 Whisky (4cl, 40%)', defaultUnits: 1.6, icon: '🥃' },
+      // Wein — 12% ABV
+      { id: 'sub-wine-bottle', name: '🍷 Wein Flasche (0,75L, 12%)', defaultUnits: 9.0, icon: '🍷' },
+      { id: 'sub-wine-lg', name: '🍷 Wein großes Glas (0,2L, 12%)', defaultUnits: 2.4, icon: '🍷' },
+      { id: 'sub-wine-sm', name: '🍷 Wein kleines Glas (0,1L, 12%)', defaultUnits: 1.2, icon: '🍷' },
+      // Sonstiges
+      { id: 'sub-sekt', name: '🥂 Sekt/Prosecco (0,1L, 11%)', defaultUnits: 1.1, icon: '🥂' },
+      { id: 'sub-cocktail', name: '🍹 Cocktail (mit Alkohol)', defaultUnits: 2.0, icon: '🍹' },
+      { id: 'sub-alcopop', name: '🥤 Alcopop (0,33L, 5%)', defaultUnits: 1.65, icon: '🥤' },
     ],
   },
   {
