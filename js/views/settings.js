@@ -5,22 +5,22 @@ import { showToast } from '../utils.js';
 export async function renderSettings(container) {
   container.innerHTML = `<h1 class="page-title">Einstellungen</h1>`;
 
-  // GitHub Sync section
-  container.appendChild(buildGitHubSection());
-  container.appendChild(buildDivider());
-
-  // Categories section
+  // Categories section first
   container.appendChild(buildCategoriesSection());
   container.appendChild(buildDivider());
 
-  // Data section
+  // Data (export/import)
   container.appendChild(buildDataSection());
+  container.appendChild(buildDivider());
+
+  // GitHub Sync last (optional, advanced)
+  container.appendChild(buildGitHubSection());
 }
 
 function buildGitHubSection() {
   const section = document.createElement('div');
   section.className = 'settings-section';
-  section.innerHTML = `<div class="settings-section-title">GitHub Sync</div>`;
+  section.innerHTML = `<div class="settings-section-title">GitHub Sync (Optional — mehrere Geräte)</div>`;
 
   const connected = hasToken();
   const card = document.createElement('div');
@@ -46,10 +46,12 @@ function buildGitHubSection() {
   } else {
     card.innerHTML = `
       <div style="margin-bottom:16px;">
-        <div style="font-weight:600;margin-bottom:8px;">GitHub Personal Access Token</div>
-        <div style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">
-          Gehe zu GitHub → Settings → Developer settings → Personal access tokens → Generate new token.<br>
-          Wähle Scope: <strong>repo</strong> (Full control of private repositories).
+        <div style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;line-height:1.6;">
+          <strong style="color:var(--text-primary);">Ohne Token</strong> — Daten werden lokal im Browser gespeichert. Funktioniert sofort, nur auf diesem Gerät.<br><br>
+          <strong style="color:var(--text-primary);">Mit Token</strong> — Daten werden automatisch im GitHub-Repo gespeichert und sind auf allen Geräten sichtbar.
+        </div>
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:12px;">
+          Token erstellen: GitHub → Settings → Developer settings → Personal access tokens → Generate new token → Scope: <strong>repo</strong>
         </div>
         <input type="password" class="form-input" id="tokenInput" placeholder="ghp_xxxxxxxxxxxx" style="margin-bottom:12px;" />
         <button class="btn btn-primary" id="connectBtn">Verbinden</button>

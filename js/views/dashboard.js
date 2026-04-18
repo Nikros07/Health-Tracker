@@ -1,7 +1,6 @@
 import { getCategories } from '../store.js';
 import { calculateStreak, getTodayTotal, getYesterdayTotal, getWeeklyData, getMonthlyData, getMonthlyTotal } from '../models.js';
 import { renderWeeklyChart, renderMonthlyChart, renderDonutChart } from '../charts.js';
-import { hasToken } from '../github-storage.js';
 
 export function renderDashboard(container) {
   const categories = getCategories();
@@ -9,14 +8,11 @@ export function renderDashboard(container) {
 
   // Header
   const header = document.createElement('div');
-  header.style.cssText = 'display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;';
+  header.style.cssText = 'margin-bottom:24px;';
   const greeting = getGreeting();
   header.innerHTML = `
-    <div>
-      <h1 class="page-title" style="margin-bottom:4px;">⚡ Tracker</h1>
-      <p style="color:var(--text-secondary);font-size:14px;">${greeting}</p>
-    </div>
-    ${!hasToken() ? `<a href="#settings" class="badge badge-warning" style="cursor:pointer;text-decoration:none;">⚠ Kein GitHub-Sync</a>` : '<span class="badge badge-success">✓ Synced</span>'}
+    <h1 class="page-title" style="margin-bottom:4px;">⚡ Tracker</h1>
+    <p style="color:var(--text-secondary);font-size:14px;">${greeting}</p>
   `;
   container.appendChild(header);
 
