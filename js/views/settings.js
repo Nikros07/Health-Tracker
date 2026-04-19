@@ -89,7 +89,7 @@ function buildCategoriesSection() {
     row.style.marginBottom = '8px';
     row.innerHTML = `
       <div>
-        <div class="settings-row-label">${cat.icon} ${cat.name}</div>
+        <div class="settings-row-label" style="display:flex;align-items:center;gap:8px;"><span class="cat-dot" style="background:${cat.color};"></span>${cat.name}</div>
         <div class="settings-row-desc">Limit: ${cat.dailyLimit || '—'} ${cat.unit}/Tag · ${cat.subcategories?.length || 0} Subkategorien</div>
       </div>
       <div style="display:flex;gap:8px;align-items:center;">
@@ -123,7 +123,7 @@ function openEditCategory(catId, container) {
 
   const overlay = document.getElementById('modalOverlay');
   const body = document.getElementById('modalBody');
-  document.getElementById('addModal').querySelector('.modal-title').textContent = `${cat.icon} ${cat.name} bearbeiten`;
+  document.getElementById('addModal').querySelector('.modal-title').textContent = `${cat.name} bearbeiten`;
   overlay.classList.remove('hidden');
   body.innerHTML = '';
 
@@ -132,10 +132,6 @@ function openEditCategory(catId, container) {
     <div class="form-group">
       <label class="form-label">Name</label>
       <input type="text" class="form-input" id="editName" value="${cat.name}" />
-    </div>
-    <div class="form-group">
-      <label class="form-label">Icon (Emoji)</label>
-      <input type="text" class="form-input" id="editIcon" value="${cat.icon}" />
     </div>
     <div class="form-group">
       <label class="form-label">Tages-Limit</label>
@@ -153,7 +149,6 @@ function openEditCategory(catId, container) {
   saveBtn.addEventListener('click', () => {
     updateCategory(catId, {
       name: form.querySelector('#editName').value.trim() || cat.name,
-      icon: form.querySelector('#editIcon').value.trim() || cat.icon,
       dailyLimit: parseFloat(form.querySelector('#editLimit').value) || null,
       color: form.querySelector('#editColor').value,
     });

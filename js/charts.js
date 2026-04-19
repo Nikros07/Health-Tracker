@@ -1,3 +1,5 @@
+import { hexToRgba } from './utils.js';
+
 const _chartInstances = new Map();
 
 Chart.defaults.color = '#94a3b8';
@@ -20,7 +22,7 @@ export function renderWeeklyChart(canvasId, categories, weeklyDataMap) {
   const labels = weeklyDataMap[categories[0]?.id]?.map(d => d.label) || [];
 
   const datasets = categories.map(cat => ({
-    label: `${cat.icon} ${cat.name}`,
+    label: cat.name,
     data: (weeklyDataMap[cat.id] || []).map(d => d.total),
     backgroundColor: hexToRgba(cat.color, 0.75),
     borderColor: cat.color,
@@ -74,7 +76,7 @@ export function renderMonthlyChart(canvasId, categories, monthlyDataMap) {
     gradient.addColorStop(1, hexToRgba(cat.color, 0.01));
 
     return {
-      label: `${cat.icon} ${cat.name}`,
+      label: cat.name,
       data: (monthlyDataMap[cat.id] || []).map(d => d.total),
       borderColor: cat.color,
       borderWidth: 2,
@@ -137,7 +139,7 @@ export function renderDonutChart(canvasId, categories, totals) {
   const chart = new Chart(ctx, {
     type: 'doughnut',
     data: {
-      labels: filtered.map(c => `${c.icon} ${c.name}`),
+      labels: filtered.map(c => c.name),
       datasets: [{
         data: filtered.map(c => totals[c.id] || 0),
         backgroundColor: filtered.map(c => hexToRgba(c.color, 0.75)),
@@ -167,9 +169,3 @@ export function renderDonutChart(canvasId, categories, totals) {
   _chartInstances.set(canvasId, chart);
 }
 
-function hexToRgba(hex, alpha) {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-}
