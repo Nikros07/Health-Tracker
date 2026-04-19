@@ -192,6 +192,18 @@
       "unit": "Units",
       "notes": "Puchheimer Volksfest",
       "timestamp": "2026-04-11T11:49:00.000Z"
+    },
+    {
+      "id": "b1cd0f69-1890-4e2e-b530-6f09d5c3c48f",
+      "createdAt": "2026-04-19T11:50:18.885Z",
+      "categoryId": "cat-nicotine",
+      "subcategoryId": "sub-snus",
+      "subcategoryName": "Snus/Kautabak",
+      "amount": 1,
+      "totalUnits": 1,
+      "unit": "Stück",
+      "notes": "Puchheimer Baddie",
+      "timestamp": "2026-04-19T11:49:00.000Z"
     }
   ],
   "settings": {
