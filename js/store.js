@@ -7,52 +7,36 @@ const DEFAULT_CATEGORIES = [
   {
     id: 'cat-alcohol',
     name: 'Alkohol',
-    icon: '🍺',
+    icon: '',
     color: '#7c3aed',
     unit: 'Units',
     dailyLimit: 14,
     archived: false,
     subcategories: [
-      // Bier — 5% ABV: ml × 0,05 / 10 = Units
-      { id: 'sub-beer-mass', name: 'Maß Bier (1L, 5%)', defaultUnits: 5.0, icon: '🍺' },
-      { id: 'sub-beer-05', name: 'Bier Flasche/Pint (0,5L, 5%)', defaultUnits: 2.5, icon: '🍺' },
-      { id: 'sub-beer-033', name: 'Kleines Bier (0,33L, 5%)', defaultUnits: 1.65, icon: '🍺' },
-      // Vodka — 40% ABV
-      { id: 'sub-vodka-shot', name: 'Vodka Shot (2cl, 40%)', defaultUnits: 0.8, icon: '🥃' },
-      { id: 'sub-vodka-norm', name: 'Vodka Glas (4cl, 40%)', defaultUnits: 1.6, icon: '🥃' },
-      { id: 'sub-vodka-dbl', name: 'Vodka doppelt (8cl, 40%)', defaultUnits: 3.2, icon: '🥃' },
-      { id: 'sub-vodka-lg', name: 'Vodka Party-Glas (15cl, 40%)', defaultUnits: 6.0, icon: '🥃' },
-      // Gin, Rum, Whisky — 40%
-      { id: 'sub-gin-norm', name: 'Gin (4cl, 40%)', defaultUnits: 1.6, icon: '🫙' },
-      { id: 'sub-gin-lg', name: 'Gin doppelt (8cl, 40%)', defaultUnits: 3.2, icon: '🫙' },
-      { id: 'sub-rum-norm', name: 'Rum (4cl, 40%)', defaultUnits: 1.6, icon: '🫙' },
-      { id: 'sub-rum-lg', name: 'Rum doppelt (8cl, 40%)', defaultUnits: 3.2, icon: '🫙' },
-      { id: 'sub-whisky-norm', name: 'Whisky (4cl, 40%)', defaultUnits: 1.6, icon: '🥃' },
-      // Wein — 12% ABV
-      { id: 'sub-wine-bottle', name: 'Wein Flasche (0,75L, 12%)', defaultUnits: 9.0, icon: '🍷' },
-      { id: 'sub-wine-lg', name: 'Wein großes Glas (0,2L, 12%)', defaultUnits: 2.4, icon: '🍷' },
-      { id: 'sub-wine-sm', name: 'Wein kleines Glas (0,1L, 12%)', defaultUnits: 1.2, icon: '🍷' },
-      // Sonstiges
-      { id: 'sub-sekt', name: 'Sekt/Prosecco (0,1L, 11%)', defaultUnits: 1.1, icon: '🥂' },
-      { id: 'sub-cocktail', name: 'Cocktail (mit Alkohol)', defaultUnits: 2.0, icon: '🍹' },
-      { id: 'sub-alcopop', name: 'Alcopop (0,33L, 5%)', defaultUnits: 1.65, icon: '🥤' },
+      { id: 'sub-beer-05',   name: '1 Bier (0,5L)',      defaultUnits: 2.5, unit: 'Units' },
+      { id: 'sub-beer-mass', name: '1 Maß Bier (1L)',     defaultUnits: 5.0, unit: 'Units' },
+      { id: 'sub-shot',      name: 'Shot (4cl)',           defaultUnits: 1.6, unit: 'Units' },
+      { id: 'sub-shot-dbl',  name: 'Doppelter Shot (8cl)',defaultUnits: 3.2, unit: 'Units' },
+      { id: 'sub-cocktail',  name: 'Cocktail',             defaultUnits: 2.0, unit: 'Units' },
+      { id: 'sub-wine',      name: 'Wein (0,2L)',          defaultUnits: 2.4, unit: 'Units' },
+      { id: 'sub-sekt',      name: 'Sekt (0,1L)',          defaultUnits: 1.1, unit: 'Units' },
     ],
   },
   {
     id: 'cat-nicotine',
     name: 'Nikotin',
-    icon: '🚬',
+    icon: '',
     color: '#f59e0b',
     unit: 'Stück',
     dailyLimit: 10,
     archived: false,
     subcategories: [
-      { id: 'sub-cig', name: 'Zigarette', defaultUnits: 1, icon: '🚬' },
-      { id: 'sub-cig-light', name: 'Zigarette Light', defaultUnits: 1, icon: '🚬' },
-      { id: 'sub-vape', name: 'Vape/E-Zigarette', defaultUnits: 1, icon: '💨' },
-      { id: 'sub-cigar', name: 'Zigarre', defaultUnits: 1, icon: '🪖' },
-      { id: 'sub-snus', name: 'Snus/Kautabak', defaultUnits: 1, icon: '📦' },
-      { id: 'sub-patch', name: 'Nikotinpflaster', defaultUnits: 1, icon: '🩹' },
+      { id: 'sub-cig',        name: 'Zigarette',         defaultUnits: 1,  unit: 'Stück'  },
+      { id: 'sub-vape',       name: 'Vape',              defaultUnits: 1,  unit: 'Session'},
+      { id: 'sub-snus-4',     name: 'Snus leicht (4mg)', defaultUnits: 4,  unit: 'mg'     },
+      { id: 'sub-snus-8',     name: 'Snus mittel (8mg)', defaultUnits: 8,  unit: 'mg'     },
+      { id: 'sub-snus-12',    name: 'Snus stark (12mg)', defaultUnits: 12, unit: 'mg'     },
+      { id: 'sub-shisha',     name: 'Shisha',            defaultUnits: 1,  unit: 'Session'},
     ],
   },
 ];
@@ -150,6 +134,16 @@ export function addEntry(entry) {
 export function deleteEntry(id) {
   _state.entries = _state.entries.filter(e => e.id !== id);
   scheduleSave();
+}
+
+export function updateEntry(id, updates) {
+  const idx = _state.entries.findIndex(e => e.id === id);
+  if (idx >= 0) {
+    _state.entries[idx] = { ..._state.entries[idx], ...updates, updatedAt: new Date().toISOString() };
+    scheduleSave();
+    return _state.entries[idx];
+  }
+  return null;
 }
 
 export function addCategory(cat) {

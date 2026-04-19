@@ -1,6 +1,7 @@
 import { getEntries, deleteEntry, getCategories } from '../store.js';
 import { groupEntriesByDate } from '../models.js';
-import { formatDate, formatTime, showToast } from '../utils.js';
+import { formatDate, formatTime, showToast, hexToRgba } from '../utils.js';
+import { openEditModal } from './log.js';
 
 let _filterCat = 'all';
 let _filterRange = '7d';
@@ -25,7 +26,7 @@ export function renderHistory(container) {
   filterBar.appendChild(allChip);
 
   categories.forEach(cat => {
-    const chip = makeFilterChip(`${cat.icon} ${cat.name}`, cat.id, _filterCat === cat.id, cat.color, () => {
+    const chip = makeFilterChip(cat.name, cat.id, _filterCat === cat.id, cat.color, () => {
       _filterCat = cat.id;
       renderHistory(container);
     });
@@ -87,8 +88,9 @@ export function renderHistory(container) {
 
     const dateHeader = document.createElement('div');
     dateHeader.className = 'history-date-header';
-    const dayTotal = dayEntries.reduce((s, e) => s + (e.totalUnits || e.amount), 0);
-    dateHeader.innerHTML = `${formatDate(dateKey)} <span style="float:right;font-weight:400;text-transform:none;">${dayTotal.toFixed(1)} Units gesamt</span>`;
+    const dayAlcohol = dayEntries.filter(e => e.unit === 'Units').reduce((s, e) => s + (e.totalUnits || e.amount), 0);
+    const daySummary = dayAlcohol > 0 ? `${dayAlcohol.toFixed(1)} Units` : `${dayEntries.length} Einträge`;
+    dateHeader.innerHTML = `${formatDate(dateKey)} <span style="float:right;font-weight:400;text-transform:none;">${daySummary}</span>`;
     group.appendChild(dateHeader);
 
     dayEntries.forEach(entry => {
@@ -108,8 +110,9 @@ function buildHistoryItem(entry, cat, container, categories) {
 
   const iconDiv = document.createElement('div');
   iconDiv.className = 'history-item-icon';
-  iconDiv.style.background = hexToRgba(cat.color, 0.15);
-  iconDiv.textContent = cat.icon;
+  iconDiv.style.background = hexToRgba(cat.color, 0.2);
+  iconDiv.style.color = cat.color;
+  iconDiv.textContent = (entry.subcategoryName || cat.name).slice(0, 2).toUpperCase();
 
   const content = document.createElement('div');
   content.className = 'history-item-content';
@@ -118,13 +121,31 @@ function buildHistoryItem(entry, cat, container, categories) {
     <div class="history-item-meta">${cat.name} · ${formatTime(entry.timestamp)}${entry.notes ? ` · "${entry.notes}"` : ''}</div>
   `;
 
+  const displayVal = entry.unit === 'mg'
+    ? Math.round(entry.totalUnits || entry.amount)
+    : (entry.totalUnits || entry.amount).toFixed(1);
+
   const amount = document.createElement('div');
   amount.className = 'history-item-amount';
   amount.innerHTML = `
-    <div class="history-item-units" style="color:${cat.color};">${(entry.totalUnits || entry.amount).toFixed(1)}</div>
-    <div class="history-item-unit-label">${entry.unit}</div>
-    ${entry.amount > 1 ? `<div class="history-item-unit-label">${entry.amount}×</div>` : ''}
+    <div class="history-item-units" style="color:${cat.color};">${displayVal}</div>
+    <div class="history-item-unit-label">${entry.unit || cat.unit}</div>
+    ${entry.amount > 1 && entry.unit !== 'mg' ? `<div class="history-item-unit-label">${entry.amount}×</div>` : ''}
   `;
+
+  const isTouchDevice = window.matchMedia('(hover: none)').matches;
+  const actions = document.createElement('div');
+  actions.style.cssText = `display:flex;gap:4px;opacity:${isTouchDevice ? '1' : '0'};transition:opacity 0.15s;`;
+  if (!isTouchDevice) {
+    item.addEventListener('mouseenter', () => actions.style.opacity = '1');
+    item.addEventListener('mouseleave', () => actions.style.opacity = '0');
+  }
+
+  const editBtn = document.createElement('button');
+  editBtn.className = 'history-item-delete';
+  editBtn.setAttribute('aria-label', 'Bearbeiten');
+  editBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>`;
+  editBtn.addEventListener('click', () => openEditModal(entry));
 
   const deleteBtn = document.createElement('button');
   deleteBtn.className = 'history-item-delete';
@@ -138,10 +159,13 @@ function buildHistoryItem(entry, cat, container, categories) {
     }
   });
 
+  actions.appendChild(editBtn);
+  actions.appendChild(deleteBtn);
+
   item.appendChild(iconDiv);
   item.appendChild(content);
   item.appendChild(amount);
-  item.appendChild(deleteBtn);
+  item.appendChild(actions);
   return item;
 }
 
@@ -160,7 +184,7 @@ function buildSummary(entries, categories) {
     const card = document.createElement('div');
     card.className = 'card card-sm';
     card.innerHTML = `
-      <div style="font-size:12px;color:var(--text-secondary);">${cat.icon} ${cat.name}</div>
+      <div style="font-size:12px;color:var(--text-secondary);display:flex;align-items:center;gap:6px;"><span class="cat-dot" style="background:${cat.color};"></span>${cat.name}</div>
       <div style="font-size:22px;font-weight:700;color:${cat.color};margin-top:4px;">${total.toFixed(1)}</div>
       <div style="font-size:11px;color:var(--text-muted);">${cat.unit} gesamt</div>
     `;
@@ -195,16 +219,9 @@ function createEmptyState() {
   const div = document.createElement('div');
   div.className = 'empty-state';
   div.innerHTML = `
-    <div class="empty-state-icon">📭</div>
     <div class="empty-state-title">Keine Einträge</div>
     <p class="empty-state-desc">Noch keine Einträge für diesen Zeitraum.</p>
   `;
   return div;
 }
 
-function hexToRgba(hex, alpha) {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-}
