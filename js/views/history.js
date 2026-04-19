@@ -1,6 +1,7 @@
 import { getEntries, deleteEntry, getCategories } from '../store.js';
 import { groupEntriesByDate } from '../models.js';
 import { formatDate, formatTime, showToast } from '../utils.js';
+import { openEditModal } from './log.js';
 
 let _filterCat = 'all';
 let _filterRange = '7d';
@@ -87,8 +88,9 @@ export function renderHistory(container) {
 
     const dateHeader = document.createElement('div');
     dateHeader.className = 'history-date-header';
-    const dayTotal = dayEntries.reduce((s, e) => s + (e.totalUnits || e.amount), 0);
-    dateHeader.innerHTML = `${formatDate(dateKey)} <span style="float:right;font-weight:400;text-transform:none;">${dayTotal.toFixed(1)} Units gesamt</span>`;
+    const dayAlcohol = dayEntries.filter(e => e.unit === 'Units').reduce((s, e) => s + (e.totalUnits || e.amount), 0);
+    const daySummary = dayAlcohol > 0 ? `${dayAlcohol.toFixed(1)} Units` : `${dayEntries.length} Einträge`;
+    dateHeader.innerHTML = `${formatDate(dateKey)} <span style="float:right;font-weight:400;text-transform:none;">${daySummary}</span>`;
     group.appendChild(dateHeader);
 
     dayEntries.forEach(entry => {
@@ -118,13 +120,31 @@ function buildHistoryItem(entry, cat, container, categories) {
     <div class="history-item-meta">${cat.name} · ${formatTime(entry.timestamp)}${entry.notes ? ` · "${entry.notes}"` : ''}</div>
   `;
 
+  const displayVal = entry.unit === 'mg'
+    ? Math.round(entry.totalUnits || entry.amount)
+    : (entry.totalUnits || entry.amount).toFixed(1);
+
   const amount = document.createElement('div');
   amount.className = 'history-item-amount';
   amount.innerHTML = `
-    <div class="history-item-units" style="color:${cat.color};">${(entry.totalUnits || entry.amount).toFixed(1)}</div>
-    <div class="history-item-unit-label">${entry.unit}</div>
-    ${entry.amount > 1 ? `<div class="history-item-unit-label">${entry.amount}×</div>` : ''}
+    <div class="history-item-units" style="color:${cat.color};">${displayVal}</div>
+    <div class="history-item-unit-label">${entry.unit || cat.unit}</div>
+    ${entry.amount > 1 && entry.unit !== 'mg' ? `<div class="history-item-unit-label">${entry.amount}×</div>` : ''}
   `;
+
+  const isTouchDevice = window.matchMedia('(hover: none)').matches;
+  const actions = document.createElement('div');
+  actions.style.cssText = `display:flex;gap:4px;opacity:${isTouchDevice ? '1' : '0'};transition:opacity 0.15s;`;
+  if (!isTouchDevice) {
+    item.addEventListener('mouseenter', () => actions.style.opacity = '1');
+    item.addEventListener('mouseleave', () => actions.style.opacity = '0');
+  }
+
+  const editBtn = document.createElement('button');
+  editBtn.className = 'history-item-delete';
+  editBtn.setAttribute('aria-label', 'Bearbeiten');
+  editBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>`;
+  editBtn.addEventListener('click', () => openEditModal(entry));
 
   const deleteBtn = document.createElement('button');
   deleteBtn.className = 'history-item-delete';
@@ -138,10 +158,13 @@ function buildHistoryItem(entry, cat, container, categories) {
     }
   });
 
+  actions.appendChild(editBtn);
+  actions.appendChild(deleteBtn);
+
   item.appendChild(iconDiv);
   item.appendChild(content);
   item.appendChild(amount);
-  item.appendChild(deleteBtn);
+  item.appendChild(actions);
   return item;
 }
 

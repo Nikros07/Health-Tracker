@@ -47,12 +47,21 @@ const DEFAULT_CATEGORIES = [
     dailyLimit: 10,
     archived: false,
     subcategories: [
-      { id: 'sub-cig', name: 'Zigarette', defaultUnits: 1, icon: '🚬' },
-      { id: 'sub-cig-light', name: 'Zigarette Light', defaultUnits: 1, icon: '🚬' },
-      { id: 'sub-vape', name: 'Vape/E-Zigarette', defaultUnits: 1, icon: '💨' },
-      { id: 'sub-cigar', name: 'Zigarre', defaultUnits: 1, icon: '🪖' },
-      { id: 'sub-snus', name: 'Snus/Kautabak', defaultUnits: 1, icon: '📦' },
-      { id: 'sub-patch', name: 'Nikotinpflaster', defaultUnits: 1, icon: '🩹' },
+      // Kippen
+      { id: 'sub-cig', name: 'Zigarette (Kippe)', defaultUnits: 1, icon: '🚬', unit: 'Stück' },
+      { id: 'sub-cig-light', name: 'Zigarette Light', defaultUnits: 1, icon: '🚬', unit: 'Stück' },
+      { id: 'sub-rollup', name: 'Selbstgedreht', defaultUnits: 1, icon: '🚬', unit: 'Stück' },
+      // Vape — in Zügen
+      { id: 'sub-vape-zug', name: 'Vape (einzelne Züge)', defaultUnits: 1, icon: '💨', unit: 'Züge' },
+      { id: 'sub-vape-session', name: 'Vape Session (~50 Züge)', defaultUnits: 50, icon: '💨', unit: 'Züge' },
+      // Snus — in Milligramm
+      { id: 'sub-snus-4', name: 'Snus schwach (4mg)', defaultUnits: 4, icon: '📦', unit: 'mg' },
+      { id: 'sub-snus-8', name: 'Snus mittel (8mg)', defaultUnits: 8, icon: '📦', unit: 'mg' },
+      { id: 'sub-snus-12', name: 'Snus stark (12mg)', defaultUnits: 12, icon: '📦', unit: 'mg' },
+      { id: 'sub-snus-16', name: 'Snus extra stark (16mg)', defaultUnits: 16, icon: '📦', unit: 'mg' },
+      // Sonstiges
+      { id: 'sub-cigar', name: 'Zigarre', defaultUnits: 1, icon: '🪖', unit: 'Stück' },
+      { id: 'sub-patch', name: 'Nikotinpflaster', defaultUnits: 1, icon: '🩹', unit: 'Stück' },
     ],
   },
 ];
@@ -150,6 +159,16 @@ export function addEntry(entry) {
 export function deleteEntry(id) {
   _state.entries = _state.entries.filter(e => e.id !== id);
   scheduleSave();
+}
+
+export function updateEntry(id, updates) {
+  const idx = _state.entries.findIndex(e => e.id === id);
+  if (idx >= 0) {
+    _state.entries[idx] = { ..._state.entries[idx], ...updates, updatedAt: new Date().toISOString() };
+    scheduleSave();
+    return _state.entries[idx];
+  }
+  return null;
 }
 
 export function addCategory(cat) {

@@ -1,30 +1,44 @@
-import { getCategories, addEntry } from '../store.js';
+import { getCategories, addEntry, updateEntry } from '../store.js';
 import { showToast } from '../utils.js';
 import { renderDashboard } from './dashboard.js';
 
 let _selectedCat = null;
 let _selectedSub = null;
 let _quantity = 1;
+let _editEntryId = null;
 
 export function openLogModal() {
   const categories = getCategories();
   if (!categories.length) {
-    showToast('Keine Kategorien vorhanden. Bitte zuerst Kategorien anlegen.', 'error');
+    showToast('Keine Kategorien vorhanden.', 'error');
     return;
   }
-
+  _editEntryId = null;
   _selectedCat = categories[0];
   _selectedSub = _selectedCat.subcategories[0] || null;
   _quantity = 1;
+  _openModal('Eintrag hinzufügen', categories);
+}
 
+export function openEditModal(entry) {
+  const categories = getCategories();
+  _editEntryId = entry.id;
+  _selectedCat = categories.find(c => c.id === entry.categoryId) || categories[0];
+  _selectedSub = _selectedCat.subcategories.find(s => s.id === entry.subcategoryId) || _selectedCat.subcategories[0] || null;
+  _quantity = entry.amount || 1;
+  _openModal('Eintrag bearbeiten', categories, entry);
+}
+
+function _openModal(title, categories, prefill = null) {
+  document.getElementById('addModal').querySelector('.modal-title').textContent = title;
   const overlay = document.getElementById('modalOverlay');
   const body = document.getElementById('modalBody');
   overlay.classList.remove('hidden');
   body.innerHTML = '';
-  body.appendChild(buildForm(categories));
+  body.appendChild(buildForm(categories, prefill));
 }
 
-function buildForm(categories) {
+function buildForm(categories, prefill = null) {
   const frag = document.createDocumentFragment();
 
   // Category picker
@@ -59,7 +73,8 @@ function buildForm(categories) {
   frag.appendChild(unitSection);
 
   // Quantity
-  const qtySection = createSection('Anzahl');
+  const qtySection = createSection(getQtyLabel());
+  qtySection.id = 'qtySection';
   qtySection.appendChild(buildQuantityInput());
   frag.appendChild(qtySection);
 
@@ -69,9 +84,9 @@ function buildForm(categories) {
   dtInput.type = 'datetime-local';
   dtInput.className = 'form-input';
   dtInput.id = 'entryDateTime';
-  const now = new Date();
-  now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-  dtInput.value = now.toISOString().slice(0, 16);
+  const ts = prefill?.timestamp ? new Date(prefill.timestamp) : new Date();
+  ts.setMinutes(ts.getMinutes() - ts.getTimezoneOffset());
+  dtInput.value = ts.toISOString().slice(0, 16);
   dtSection.appendChild(dtInput);
   frag.appendChild(dtSection);
 
@@ -82,6 +97,7 @@ function buildForm(categories) {
   notesInput.className = 'form-input';
   notesInput.id = 'entryNotes';
   notesInput.placeholder = 'z.B. Freitagabend mit Freunden';
+  notesInput.value = prefill?.notes || '';
   notesSection.appendChild(notesInput);
   frag.appendChild(notesSection);
 
@@ -89,11 +105,23 @@ function buildForm(categories) {
   const submitBtn = document.createElement('button');
   submitBtn.className = 'btn btn-primary btn-full';
   submitBtn.style.marginTop = '8px';
-  submitBtn.textContent = 'Eintrag speichern';
+  submitBtn.textContent = _editEntryId ? 'Änderungen speichern' : 'Eintrag speichern';
   submitBtn.addEventListener('click', handleSubmit);
   frag.appendChild(submitBtn);
 
   return frag;
+}
+
+function getUnit() {
+  return _selectedSub?.unit || _selectedCat?.unit || 'Stück';
+}
+
+function getQtyLabel() {
+  const unit = getUnit();
+  if (unit === 'Züge') return 'Anzahl Züge';
+  if (unit === 'mg') return 'Milligramm';
+  if (unit === 'Units') return 'Anzahl Drinks';
+  return 'Anzahl';
 }
 
 function createSection(label) {
@@ -111,11 +139,12 @@ function buildSubcatGrid() {
   grid.className = 'subcat-grid';
   const subs = _selectedCat?.subcategories || [];
   subs.forEach(sub => {
+    const subUnit = sub.unit || _selectedCat.unit;
     const item = document.createElement('button');
     item.className = `subcat-item${_selectedSub?.id === sub.id ? ' selected' : ''}`;
     item.innerHTML = `
       <span class="subcat-name">${sub.icon || ''} ${sub.name}</span>
-      <span class="subcat-units">${sub.defaultUnits} ${_selectedCat.unit}</span>
+      <span class="subcat-units">${sub.defaultUnits} ${subUnit}</span>
     `;
     item.addEventListener('click', () => selectSub(sub, item));
     grid.appendChild(item);
@@ -125,30 +154,34 @@ function buildSubcatGrid() {
 
 function buildUnitInfo() {
   if (!_selectedSub) return document.createDocumentFragment();
-  const totalUnits = (_selectedSub.defaultUnits * _quantity).toFixed(2);
+  const unit = getUnit();
+  const total = (_selectedSub.defaultUnits * _quantity).toFixed(unit === 'mg' ? 0 : 2);
   const frag = document.createDocumentFragment();
 
+  const isAlcohol = _selectedCat?.id === 'cat-alcohol';
   const div = document.createElement('div');
   div.className = 'unit-info';
   div.innerHTML = `
     <div>
-      <div>Reiner Alkohol</div>
-      <div style="font-size:11px;color:var(--text-muted);">1 Unit = 10ml purer Alkohol</div>
+      <div>Gesamt</div>
+      ${isAlcohol ? '<div style="font-size:11px;color:var(--text-muted);">1 Unit = 10ml purer Alkohol</div>' : ''}
     </div>
-    <span class="unit-info-value">${totalUnits} ${_selectedCat.unit}</span>
+    <span class="unit-info-value">${total} ${unit}</span>
   `;
   frag.appendChild(div);
   return frag;
 }
 
 function buildQuantityInput() {
+  const unit = getUnit();
   const row = document.createElement('div');
   row.className = 'amount-row';
 
+  const step = unit === 'mg' ? 1 : 1;
   const minusBtn = document.createElement('button');
   minusBtn.className = 'amount-btn';
   minusBtn.textContent = '−';
-  minusBtn.addEventListener('click', () => adjustQty(-1));
+  minusBtn.addEventListener('click', () => adjustQty(-step));
 
   const inputWrapper = document.createElement('div');
   inputWrapper.className = 'amount-input-wrapper';
@@ -158,7 +191,6 @@ function buildQuantityInput() {
   input.className = 'form-input';
   input.id = 'entryQty';
   input.min = '1';
-  input.max = '99';
   input.value = _quantity;
   input.addEventListener('change', e => {
     _quantity = Math.max(1, parseInt(e.target.value) || 1);
@@ -168,7 +200,7 @@ function buildQuantityInput() {
 
   const unitLabel = document.createElement('div');
   unitLabel.className = 'amount-unit';
-  unitLabel.textContent = 'Anzahl Drinks/Stück';
+  unitLabel.textContent = unit;
 
   inputWrapper.appendChild(input);
   inputWrapper.appendChild(unitLabel);
@@ -176,7 +208,7 @@ function buildQuantityInput() {
   const plusBtn = document.createElement('button');
   plusBtn.className = 'amount-btn';
   plusBtn.textContent = '+';
-  plusBtn.addEventListener('click', () => adjustQty(1));
+  plusBtn.addEventListener('click', () => adjustQty(step));
 
   row.appendChild(minusBtn);
   row.appendChild(inputWrapper);
@@ -196,18 +228,23 @@ function selectCategory(cat) {
   _selectedSub = cat.subcategories[0] || null;
   _quantity = 1;
 
-  // Update chip active states
   document.querySelectorAll('#catChips .chip').forEach((chip, i) => {
     const cats = getCategories();
     chip.classList.toggle('active', cats[i]?.id === cat.id);
   });
 
-  // Rebuild subcategory section
   const subSection = document.getElementById('subSection');
   if (subSection) {
     subSection.querySelector('.subcat-grid')?.remove();
     subSection.appendChild(buildSubcatGrid());
   }
+
+  const qtySection = document.getElementById('qtySection');
+  if (qtySection) {
+    const lbl = qtySection.querySelector('.form-label');
+    if (lbl) lbl.textContent = getQtyLabel();
+  }
+
   refreshUnitInfo();
 }
 
@@ -215,6 +252,13 @@ function selectSub(sub, element) {
   _selectedSub = sub;
   document.querySelectorAll('.subcat-item').forEach(el => el.classList.remove('selected'));
   element.classList.add('selected');
+
+  const qtySection = document.getElementById('qtySection');
+  if (qtySection) {
+    const lbl = qtySection.querySelector('.form-label');
+    if (lbl) lbl.textContent = getQtyLabel();
+  }
+
   refreshUnitInfo();
 }
 
@@ -223,7 +267,6 @@ function refreshUnitInfo() {
   if (!container) return;
   container.innerHTML = '';
   container.appendChild(buildUnitInfo());
-
   const input = document.getElementById('entryQty');
   if (input) input.value = _quantity;
 }
@@ -233,6 +276,7 @@ async function handleSubmit() {
 
   const dtInput = document.getElementById('entryDateTime');
   const notesInput = document.getElementById('entryNotes');
+  const unit = getUnit();
 
   const timestamp = dtInput?.value
     ? new Date(dtInput.value).toISOString()
@@ -242,25 +286,35 @@ async function handleSubmit() {
     ? parseFloat((_selectedSub.defaultUnits * _quantity).toFixed(4))
     : _quantity;
 
-  const entry = {
+  const entryData = {
     categoryId: _selectedCat.id,
     subcategoryId: _selectedSub?.id || null,
     subcategoryName: _selectedSub?.name || _selectedCat.name,
     amount: _quantity,
     totalUnits,
-    unit: _selectedCat.unit,
+    unit,
     notes: notesInput?.value.trim() || '',
     timestamp,
   };
 
-  addEntry(entry);
-  window.closeModal();
-  showToast(`${_selectedCat.icon} Eintrag gespeichert (${totalUnits} ${_selectedCat.unit})`, 'success');
+  if (_editEntryId) {
+    updateEntry(_editEntryId, entryData);
+    showToast(`${_selectedCat.icon} Eintrag aktualisiert`, 'success');
+  } else {
+    addEntry(entryData);
+    showToast(`${_selectedCat.icon} Gespeichert — ${totalUnits} ${unit}`, 'success');
+  }
 
-  // Refresh dashboard if visible
+  window.closeModal();
+  document.getElementById('addModal').querySelector('.modal-title').textContent = 'Eintrag hinzufügen';
+
   const dashView = document.getElementById('view-dashboard');
-  if (dashView && !dashView.classList.contains('hidden')) {
-    renderDashboard(dashView);
+  if (dashView && !dashView.classList.contains('hidden')) renderDashboard(dashView);
+
+  const histView = document.getElementById('view-history');
+  if (histView && !histView.classList.contains('hidden')) {
+    const { renderHistory } = await import('./history.js');
+    renderHistory(histView);
   }
 }
 
