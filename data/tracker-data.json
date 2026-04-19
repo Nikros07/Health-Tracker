@@ -180,6 +180,18 @@
       "unit": "Units",
       "notes": "Puchheimer Volksfest",
       "timestamp": "2026-04-17T11:46:00.000Z"
+    },
+    {
+      "id": "ce812767-9e2d-4dae-804f-08827a24f874",
+      "createdAt": "2026-04-19T11:49:28.224Z",
+      "categoryId": "cat-alcohol",
+      "subcategoryId": "sub-beer-mass",
+      "subcategoryName": "Maß Bier (1L, 5%)",
+      "amount": 2,
+      "totalUnits": 10,
+      "unit": "Units",
+      "notes": "Puchheimer Volksfest",
+      "timestamp": "2026-04-11T11:49:00.000Z"
     }
   ],
   "settings": {
