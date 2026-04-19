@@ -63,8 +63,8 @@ function buildGitHubSection() {
       setToken(token);
       const valid = await validateToken();
       if (valid) {
-        showToast('GitHub erfolgreich verbunden!', 'success');
-        renderSettings(container);
+        showToast('Verbunden! Lade Daten von GitHub…', 'success');
+        setTimeout(() => window.location.reload(), 1200);
       } else {
         clearToken();
         showToast('Ungültiger Token', 'error');
